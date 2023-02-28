@@ -1,5 +1,12 @@
 import os
 def yolo_formatter(dataset_path, objects_onshore_path, objects_onboard_path, objects_nir_path):
+    """
+    :param dataset_path: directory to images (frames)
+    :param objects_onshore_path: directory to objects_onshore.txt
+    :param objects_onboard_path: directory to objects_onboard.txt
+    :param objects_nir_path: directory to objects_nir.txt
+    :return: separate txt files per image annotated in yolo format
+    """
     # put all objects on shore in objects_onshore
     objects_onshore = []
     with open(objects_onshore_path) as f:
@@ -51,8 +58,8 @@ def yolo_formatter(dataset_path, objects_onshore_path, objects_onboard_path, obj
                 width = float(parts[3])
                 height = float(parts[4])
 
-                x_yolo = (x1 + (height/2))/1920
-                y_yolo = (y1 + (width/2))/1080
+                x_yolo = (x1 + (width/2))/1920
+                y_yolo = (y1 + (height/2))/1080
                 width =  width/1920.
                 height = height/1080.
 
@@ -71,4 +78,4 @@ def yolo_formatter(dataset_path, objects_onshore_path, objects_onboard_path, obj
                     f.write(element + '\n')
 
 print("yolo_formatter")
-yolo_formatter("C:/Users/tjorv/OneDrive/Bureaublad/dataset/obj","C:/Users/tjorv/OneDrive/Documenten/KU Leuven/FASE 4/SEM II/Masterproef/repos/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics/objects_onshore.txt","C:/Users/tjorv/OneDrive/Documenten/KU Leuven/FASE 4/SEM II/Masterproef/repos/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics/objects_onboard.txt","C:/Users/tjorv/OneDrive/Documenten/KU Leuven/FASE 4/SEM II/Masterproef/repos/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics/objects_nir.txt")
+yolo_formatter("C:/Users/tjorv/OneDrive/Bureaublad/dataset/test","C:/Users/tjorv/OneDrive/Documenten/KU Leuven/FASE 4/SEM II/Masterproef/repos/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics/objects_onshore.txt","C:/Users/tjorv/OneDrive/Documenten/KU Leuven/FASE 4/SEM II/Masterproef/repos/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics/objects_onboard.txt","C:/Users/tjorv/OneDrive/Documenten/KU Leuven/FASE 4/SEM II/Masterproef/repos/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics/objects_nir.txt")
