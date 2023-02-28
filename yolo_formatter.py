@@ -49,14 +49,23 @@ def yolo_formatter(dataset_path, objects_onshore_path, objects_onboard_path, obj
                 parts = element.split(',')
 
                 # Convert bbox x1 y1 w h to yolo format (each image is 1080x1920)
+                
                 #    ----------------------------
                 #    |                          |
                 #    |                          |
+                #    |                          |
                 # (x1,y1)------------------------
+                
                 x1 = float(parts[1])
                 y1 = float(parts[2])
                 width = float(parts[3])
                 height = float(parts[4])
+                
+                #    ----------------------------
+                #    |             |            |
+                #    |----------(x1,y1)---------|
+                #    |             |            |
+                #    ----------------------------
 
                 x_yolo = (x1 + (width/2))/1920
                 y_yolo = (y1 + (height/2))/1080
