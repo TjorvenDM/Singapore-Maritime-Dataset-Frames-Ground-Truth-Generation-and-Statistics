@@ -39,25 +39,25 @@ def yolo_formatter(dataset_path, objects_onshore_path, objects_onboard_path, obj
             # yolo list
             yolo_list = []
             for element in relevant_objects:
-                parts = element.split(' ')
+                parts = element.split(',')
 
                 # Convert bbox x1 y1 w h to yolo format (each image is 1080x1920)
                 #    ----------------------------
                 #    |                          |
                 #    |                          |
                 # (x1,y1)------------------------
+                x1 = float(parts[1])
+                y1 = float(parts[2])
+                width = float(parts[3])
+                height = float(parts[4])
 
-                x1 = parts[1]
-                y1 = parts[2]
-                width = parts[3]
-                heights = parts[4]
-
-                x_yolo = x1 + (1920./2)
-                y_yolo = Y1 + (1080./2)
+                x_yolo = (x1 + (height/2))/1920
+                y_yolo = (y1 + (width/2))/1080
                 width =  width/1920.
                 height = height/1080.
 
-                new_element = parts[-3], x_yolo, y_yolo, width, height
+                object = str(int(parts[-3])-1)
+                new_element = object, str(x_yolo), str(y_yolo), str(width), str(height)
                 # new_element = [parts[-3], parts[1], parts[2], parts[3], parts[4]] #object_type x y w h
                 yolo_list.append(' '.join(new_element))
 
@@ -70,4 +70,5 @@ def yolo_formatter(dataset_path, objects_onshore_path, objects_onboard_path, obj
                 for element in yolo_list:
                     f.write(element + '\n')
 
-yolo_formatter("D:/Masterproef/train_dataset","D:/Masterproef/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics-master/objects_onshore.txt","D:/Masterproef/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics-master/objects_onboard.txt","D:/Masterproef/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics-master/objects_nir.txt")
+print("yolo_formatter")
+yolo_formatter("C:/Users/tjorv/OneDrive/Bureaublad/dataset/obj","C:/Users/tjorv/OneDrive/Documenten/KU Leuven/FASE 4/SEM II/Masterproef/repos/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics/objects_onshore.txt","C:/Users/tjorv/OneDrive/Documenten/KU Leuven/FASE 4/SEM II/Masterproef/repos/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics/objects_onboard.txt","C:/Users/tjorv/OneDrive/Documenten/KU Leuven/FASE 4/SEM II/Masterproef/repos/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics/objects_nir.txt")
