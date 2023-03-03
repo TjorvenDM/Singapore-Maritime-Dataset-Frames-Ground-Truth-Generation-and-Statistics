@@ -1,4 +1,6 @@
 import os
+
+
 def yolo_formatter(dataset_path, objects_onshore_path, objects_onboard_path, objects_nir_path):
     """
     :param dataset_path: directory to images (frames)
@@ -21,7 +23,6 @@ def yolo_formatter(dataset_path, objects_onshore_path, objects_onboard_path, obj
             line = line.strip()
             objects_onboard.append(line)
 
-
     # put all objects on board in objects_onboard
     objects_nir = []
     with open(objects_nir_path) as f:
@@ -29,7 +30,7 @@ def yolo_formatter(dataset_path, objects_onshore_path, objects_onboard_path, obj
             line = line.strip()
             objects_nir.append(line)
 
-    #iterate through folder
+    # iterate through folder
     for filename in os.listdir(dataset_path):
         if os.path.isfile(os.path.join(dataset_path, filename)):
             # print filenames
@@ -49,42 +50,55 @@ def yolo_formatter(dataset_path, objects_onshore_path, objects_onboard_path, obj
                 parts = element.split(',')
 
                 # Convert bbox x1 y1 w h to yolo format (each image is 1080x1920)
-                
+
                 #    ----------------------------
                 #    |                          |
                 #    |                          |
                 #    |                          |
                 # (x1,y1)------------------------
-                
+
                 x1 = float(parts[1])
                 y1 = float(parts[2])
                 width = float(parts[3])
                 height = float(parts[4])
-                
+
                 #    ----------------------------
                 #    |             |            |
                 #    |----------(x1,y1)---------|
                 #    |             |            |
                 #    ----------------------------
 
-                x_yolo = (x1 + (width/2))/1920
-                y_yolo = (y1 + (height/2))/1080
-                width =  width/1920.
-                height = height/1080.
+                x_yolo = (x1 + (width / 2)) / 1920
+                y_yolo = (y1 + (height / 2)) / 1080
+                width = width / 1920.
+                height = height / 1080.
 
-                object = str(int(parts[-3])-1)
-                new_element = object, str(x_yolo), str(y_yolo), str(width), str(height)
-                # new_element = [parts[-3], parts[1], parts[2], parts[3], parts[4]] #object_type x y w h
-                yolo_list.append(' '.join(new_element))
+                #change classes:
+                if parts[-3] in (1,3,4,5,6,7):
+                    parts[-3] = 1
 
-            #print(yolo_list)
+                    object = str(int(parts[-3]) - 1)
+                    new_element = object, str(x_yolo), str(y_yolo), str(width), str(height)
+                    # new_element = [parts[-3], parts[1], parts[2], parts[3], parts[4]] #object_type x y w h
+                    yolo_list.append(' '.join(new_element))
 
-            #make txt
-            txt_filename =  os.path.splitext(filename)[0] + '.txt'
+                else:
+                    print("object with class "+parts[-3]+" not added")
+
+
+
+            # print(yolo_list)
+
+            # make txt
+            txt_filename = os.path.splitext(filename)[0] + '.txt'
             txt_filepath = os.path.join(dataset_path, txt_filename)
             with open(txt_filepath, 'w') as f:
                 for element in yolo_list:
                     f.write(element + '\n')
 
+
 print("yolo_formatter")
-yolo_formatter("C:/Users/tjorv/OneDrive/Bureaublad/dataset/test","C:/Users/tjorv/OneDrive/Documenten/KU Leuven/FASE 4/SEM II/Masterproef/repos/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics/objects_onshore.txt","C:/Users/tjorv/OneDrive/Documenten/KU Leuven/FASE 4/SEM II/Masterproef/repos/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics/objects_onboard.txt","C:/Users/tjorv/OneDrive/Documenten/KU Leuven/FASE 4/SEM II/Masterproef/repos/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics/objects_nir.txt")
+yolo_formatter("C:/Users/tjorv/OneDrive/Bureaublad/dataset/test",
+               "C:/Users/tjorv/OneDrive/Documenten/KU Leuven/FASE 4/SEM II/Masterproef/repos/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics/objects_onshore.txt",
+               "C:/Users/tjorv/OneDrive/Documenten/KU Leuven/FASE 4/SEM II/Masterproef/repos/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics/objects_onboard.txt",
+               "C:/Users/tjorv/OneDrive/Documenten/KU Leuven/FASE 4/SEM II/Masterproef/repos/Singapore-Maritime-Dataset-Frames-Ground-Truth-Generation-and-Statistics/objects_nir.txt")
