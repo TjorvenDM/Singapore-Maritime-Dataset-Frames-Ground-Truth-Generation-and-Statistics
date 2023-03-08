@@ -60,6 +60,18 @@ def image_resizer(image_folder,destination_folder,scale_factor,iterations):
                         os.makedirs(output_folder)
                     cv2.imwrite(os.path.join(output_folder, filename), resized_img)
 
+                    txt = filename[:-4] + ".txt"
+                    log_file = open(os.path.join(destination_folder,output_folder,
+                                                 f"{txt}"), "w")
+                    fl = open(image_folder + "/" + txt)
+                    data = fl.readlines()
+                    for line in data:
+                        values = line.split()
+                        log_file.write(f"{values[0]} {float(values[1])} {float(values[2])} {float(values[3])} {float(values[4])}\n")
+                    # Close the log file
+                    log_file.close()
 
-#image_resizer("C:/Users/siebe/OneDrive/Documenten/AAIndustrieel ingenieur/Masterjaar/Sem2/Masterproef/Experimentjes/dataset/dataset/klein","C:/Users/siebe/OneDrive/Documenten/AAIndustrieel ingenieur/Masterjaar/Sem2/Masterproef/Experimentjes/dataset/dataset",0.83,5)
-#image_resizer_overview("C:/Users/siebe/OneDrive/Documenten/AAIndustrieel ingenieur/Masterjaar/Sem2/Masterproef/Experimentjes/dataset/dataset/klein","C:/Users/siebe/OneDrive/Documenten/AAIndustrieel ingenieur/Masterjaar/Sem2/Masterproef/Experimentjes/dataset/dataset",0.83,5)
+
+
+image_resizer("D:/Master/Sem2/dataset/klein","D:/Master/Sem2/dataset",0.83,5)
+image_resizer_overview("D:/Master/Sem2/dataset/klein","D:/Master/Sem2/dataset",0.83,5)
