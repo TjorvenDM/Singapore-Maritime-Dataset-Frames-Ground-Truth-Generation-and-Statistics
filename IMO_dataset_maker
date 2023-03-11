@@ -1,0 +1,71 @@
+import csv
+import os
+import shutil
+
+def IMO_dataset_maker(IMO_num_csv_path, classname, IMO_info_csv_path, image_info_csv_path, images_folder_path, destination_folder_path):
+    # Load wanted IMO numbers
+    with open(IMO_num_csv_path) as f:
+        IMO_nums = [int(line.strip()) for line in f]
+    print("Wanted IMO-numbers: ",IMO_nums)
+
+    # Translate classname to what column that classname is specified
+    if classname == "shiptypegroup":
+        classname_column = 2
+    elif classname == "shiptypelevel2":
+        classname_column = 3
+    elif classname == "shiptypelevel3":
+        classname_column = 4
+    elif classname == "shiptypelevel4":
+        classname_column = 5
+    elif classname == "shiptypelevel5":
+        classname_column = 6
+    elif classname == "shiptypelevel5hulltype":
+        classname_column = 7
+    elif classname == "shiptypelevel5subgroup":
+        classname_column = 8
+    elif classname == "shiptypelevel5subtype":
+        classname_column = 9
+
+    # Load all IMO info from CSV. Store this in a dictionary called all_IMO_info
+    all_IMO_info = {}
+    with open(IMO_info_csv_path, newline='') as f:
+        reader = csv.reader(f, delimiter=';')
+        for row in reader:
+            all_IMO_numbers = int(row[0])
+            classname_value = row[classname_column]
+            all_IMO_info[all_IMO_numbers] = classname_value
+    #print(all_IMO_info)
+
+    # Load image info from CSV, but specifically store the WANTED IMO-numbers and a list of their images in a dictionary called image_info
+    image_info = {}
+    with open(image_info_csv_path) as f:
+        for row in csv.reader(f, delimiter=";"):
+            IMO_num = int(row[1])
+            #IMO_num above will contain all IMO numbers, but IMO_nums from earlier contains only the wanted IMO-numbers
+            if IMO_num in IMO_nums:
+                image = int(row[0])
+                if IMO_num not in image_info:
+                    image_info[IMO_num] = []
+                image_info[IMO_num].append(image)
+    print("image_info: ",image_info)
+
+    # Copy images from the dataset to your own dataset (folders will be made automatically)
+    for IMO_num, images in image_info.items():
+        new_folder_name = all_IMO_info[(IMO_num)]
+        new_folder_path = os.path.join(destination_folder_path, new_folder_name)
+        os.makedirs(new_folder_path, exist_ok=True)
+        for image_names in images:
+            wanted_image_name = str(image_names) + '_2'+'.jpg'
+            if image_names < 1000000:
+                images_dataset_folder_prefix = wanted_image_name[:4]
+            else:
+                images_dataset_folder_prefix = wanted_image_name[:5]
+            image_folder_path_specific = images_folder_path + images_dataset_folder_prefix + "/" + wanted_image_name
+            new_folder_path_complete = os.path.join(new_folder_path, wanted_image_name)
+            print(wanted_image_name)
+            if os.path.exists(image_folder_path_specific):
+                shutil.copyfile(image_folder_path_specific, new_folder_path_complete)
+            else:
+                print("Image folder path: ",image_folder_path_specific," does not exist")
+
+IMO_dataset_maker(r"C:\Users\siebe\OneDrive\Documenten\AAIndustrieel ingenieur\Masterjaar\Sem2\Masterproef\IMO_dataset\IMO_nums.txt","shiptypegroup",r"C:\Users\siebe\OneDrive\Documenten\AAIndustrieel ingenieur\Masterjaar\Sem2\Masterproef\IMO_dataset\alle_imos.csv",r"C:\Users\siebe\OneDrive\Documenten\AAIndustrieel ingenieur\Masterjaar\Sem2\Masterproef\IMO_dataset\ShipScapeIndex.txt","D:/",r"C:\Users\siebe\OneDrive\Documenten\AAIndustrieel ingenieur\Masterjaar\Sem2\Masterproef\IMO_dataset\werktfunctie")
