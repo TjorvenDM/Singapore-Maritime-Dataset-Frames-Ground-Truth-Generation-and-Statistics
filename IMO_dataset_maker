@@ -1,13 +1,14 @@
 import csv
 import os
 import shutil
+import random
 
-def IMO_dataset_maker(IMO_num_csv_path, classname, IMO_info_csv_path, image_info_csv_path, images_folder_path, destination_folder_path, mode = 0):
-    if mode == 0:
-        # Load wanted IMO numbers
-        with open(IMO_num_csv_path) as f:
-            IMO_nums = [int(line.strip()) for line in f]
-        print("Wanted IMO-numbers: ",IMO_nums)
+def IMO_dataset_maker(IMO_num_csv_path, classname, IMO_info_csv_path, image_info_csv_path, images_folder_path, destination_folder_path):
+    # Give some IMO_numbers and the function will make a labeled dataset out of it
+    # Load wanted IMO numbers
+    with open(IMO_num_csv_path) as f:
+        IMO_nums = [int(line.strip()) for line in f]
+    print("Wanted IMO-numbers: ",IMO_nums)
 
     # Translate classname to what column that classname is specified
     if classname == "shiptypegroup":
@@ -36,26 +37,18 @@ def IMO_dataset_maker(IMO_num_csv_path, classname, IMO_info_csv_path, image_info
             classname_value = row[classname_column]
             all_IMO_info[all_IMO_numbers] = classname_value
     #print(all_IMO_info)
-    if mode == 0:
-        # Load image info from CSV, but specifically store the WANTED IMO-numbers and a list of their images in a dictionary called image_info
-        image_info = {}
-        with open(image_info_csv_path) as f:
-            for row in csv.reader(f, delimiter=";"):
-                IMO_num = int(row[1])
-                #IMO_num above will contain all IMO numbers, but IMO_nums from earlier contains only the wanted IMO-numbers
-                if IMO_num in IMO_nums:
-                    image = int(row[0])
-                    if IMO_num not in image_info:
-                        image_info[IMO_num] = []
-                    image_info[IMO_num].append(image)
+    # Load image info from CSV, but specifically store the WANTED IMO-numbers and a list of their images in a dictionary called image_info
+    image_info = {}
+    with open(image_info_csv_path) as f:
+        for row in csv.reader(f, delimiter=";"):
+            IMO_num = int(row[1])
+            #IMO_num above will contain all IMO numbers, but IMO_nums from earlier contains only the wanted IMO-numbers
+            if IMO_num in IMO_nums:
+                image = int(row[0])
+                if IMO_num not in image_info:
+                    image_info[IMO_num] = []
+                image_info[IMO_num].append(image)
         print("image_info: ",image_info)
-    elif mode == 1:
-        ##TO DO
-        image_info = {}
-        with open(IMO_num_csv_path) as f:
-            IMO_nums = [int(line.strip()) for line in f]
-        print("Wanted IMO-numbers: ", IMO_nums)
-
 
     # Copy images from the dataset to your own dataset (folders will be made automatically)
     for IMO_num, images in image_info.items():
@@ -76,8 +69,124 @@ def IMO_dataset_maker(IMO_num_csv_path, classname, IMO_info_csv_path, image_info
             else:
                 print("Image folder path: ",image_folder_path_specific," does not exist")
 
-def make_balanced_dataset(IMO_info_csv_path, image_info_csv_path, images_folder_path, destination_folder_path, mode = 0):
-    
+def make_balanced_dataset(classname, wanted_classes_csv, IMO_info_csv_path, image_info_csv_path, all_IMO_info_freq_path, images_folder_path, destination_folder_path, images_of_each_class, images_of_each_ship):
+    if images_of_each_class%images_of_each_ship != 0:
+        print("Error: images_of_each_clas % images_of_each_ship != 0")
+        return "Error"
+    # Read the wanted classes from the CSV file
+    with open(wanted_classes_csv, 'r') as f:
+        wanted_classes = [line.strip() for line in f.readlines()]
+    print("Wanted classes: ",wanted_classes)
+
+    # Translate classname to what column that classname is specified
+    if classname == "shiptypegroup":
+        classname_column = 2
+    elif classname == "shiptypelevel2":
+        classname_column = 3
+    elif classname == "shiptypelevel3":
+        classname_column = 4
+    elif classname == "shiptypelevel4":
+        classname_column = 5
+    elif classname == "shiptypelevel5":
+        classname_column = 6
+    elif classname == "shiptypelevel5hulltype":
+        classname_column = 7
+    elif classname == "shiptypelevel5subgroup":
+        classname_column = 8
+    elif classname == "shiptypelevel5subtype":
+        classname_column = 9
+
+    # Load all IMO info from CSV. Store this in a dictionary called all_IMO_info
+    all_IMO_info = {}
+    with open(IMO_info_csv_path, newline='') as f:
+        reader = csv.reader(f, delimiter=';')
+        for row in reader:
+            all_IMO_numbers = int(row[0])
+            classname_value = row[classname_column]
+            all_IMO_info[all_IMO_numbers] = classname_value
+    #print(all_IMO_info)
+
+    all_IMO_info_freq = {}
+    with open(all_IMO_info_freq_path,newline='') as f:
+        reader = csv.reader(f, delimiter=';')
+        next(reader)
+        for row in reader:
+            all_IMO_freq_numbers = int(row[0])
+            frequency = int(row[1])
+            all_IMO_info_freq[all_IMO_freq_numbers] = frequency
+    #print(all_IMO_info_freq)
+
+    # Read the image information from the CSV file
+    with open(image_info_csv_path, newline='') as f:
+        reader = csv.reader(f, delimiter=';')
+        image_info = {row[0]: row[1] for row in reader}
+    #print(image_info)
+
+    # Create a dictionary to count the number of images for each class
+    images_per_class = {c: 0 for c in wanted_classes}
 
 
-IMO_dataset_maker(r"D:\Master\Sem2\Masterproef\IMO_dataset\IMO_nums.txt","shiptypegroup",r"D:\Master\Sem2\Masterproef\IMO_dataset\alle_imos.csv",r"D:\Master\Sem2\Masterproef\IMO_dataset\ShipScapeIndex.txt","F:/",r"D:\Master\Sem2\Masterproef\IMO_dataset\Werktdit",0)
+    # Loop over the wanted classes
+    for c in wanted_classes:
+        # Create a list of IMO numbers for the current class
+        IMO_list = [IMO for IMO, cls in all_IMO_info.items() if cls == c]
+        random.shuffle(IMO_list)
+
+        # First quick check
+        print(f"Amount of ships of class {c}: {len(IMO_list)}")
+        num_images_for_class = len(IMO_list) * images_of_each_ship
+        if num_images_for_class < images_of_each_class:
+            print(f'ERROR: Not possible to get {num_images_for_class} images for class {c}. Not enough ships')
+            return 0
+
+        needed_ship_counter = images_of_each_class / images_of_each_ship
+        ship_counter = 0
+        list_of_valid_boats = []
+        for IMO_num in IMO_list:
+            if ship_counter < needed_ship_counter:
+                if IMO_num in all_IMO_info_freq:
+                    if all_IMO_info_freq[IMO_num] >= images_of_each_ship:
+                        ship_counter += 1
+                        list_of_valid_boats.append(IMO_num)
+                    else:
+                        ship_counter += 0
+            else:
+                break
+        print(f"Selected images for class {c}: {list_of_valid_boats}")
+        if ship_counter < needed_ship_counter:
+            print(f"ERROR: Not possible to get {num_images_for_class} images for class {c}. Not enough images per ship")
+            return 0
+        else:
+            dict_of_valid_ships = {}
+            all_images_class = []
+            for IMOS in list_of_valid_boats:
+                list_of_images_per_ship = []
+                for image,IMO in image_info.items():
+                    if IMO == str(IMOS):
+                        list_of_images_per_ship.append(image)
+                random_images_out_of_list = random.sample(list_of_images_per_ship,images_of_each_ship)
+                all_images_class += random_images_out_of_list
+                dict_of_valid_ships[IMOS] = random_images_out_of_list
+            #print(all_images_class)
+            #print(dict_of_valid_ships)
+
+
+        new_folder_path = os.path.join(destination_folder_path, c)
+        os.makedirs(new_folder_path, exist_ok=True)
+        for image_names in all_images_class:
+            wanted_image_name = str(image_names) + '_2' + '.jpg'
+            if int(image_names) < 1000000:
+                images_dataset_folder_prefix = wanted_image_name[:4]
+            else:
+                images_dataset_folder_prefix = wanted_image_name[:5]
+            image_folder_path_specific = images_folder_path + images_dataset_folder_prefix + "/" + wanted_image_name
+            new_folder_path_complete = os.path.join(new_folder_path, wanted_image_name)
+            print(wanted_image_name)
+            if os.path.exists(image_folder_path_specific):
+                shutil.copyfile(image_folder_path_specific, new_folder_path_complete)
+            else:
+                print("Image folder path: ", image_folder_path_specific, " does not exist")
+
+
+make_balanced_dataset("shiptypegroup", r"D:\Master\Sem2\Masterproef\IMO_dataset\wanted_classes.txt",r"D:\Master\Sem2\Masterproef\IMO_dataset\alle_imos.csv",r"D:\Master\Sem2\Masterproef\IMO_dataset\ShipScapeIndex.txt", r"D:\Master\Sem2\Masterproef\IMO_dataset\lrno_vs_freq.csv","F:/", r"D:\Master\Sem2\Masterproef\IMO_dataset\Werktdit", 750,1)
+#IMO_dataset_maker(r"D:\Master\Sem2\Masterproef\IMO_dataset\IMO_nums.txt","shiptypegroup",r"D:\Master\Sem2\Masterproef\IMO_dataset\alle_imos.csv",r"D:\Master\Sem2\Masterproef\IMO_dataset\ShipScapeIndex.txt","F:/",r"D:\Master\Sem2\Masterproef\IMO_dataset\Werktdit")
