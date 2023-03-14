@@ -1,0 +1,79 @@
+import os
+import random
+import tkinter as tk
+from PIL import ImageTk, Image
+
+##CITATION NEEDED
+class IMO_dataset_plotter:
+    def __init__(self, folder_path):
+        self.folder_path = folder_path
+        self.subfolders = []
+        self.image_paths = []
+        self.image_widgets = []
+
+        # Create the Tkinter window
+        self.root = tk.Tk()
+        self.root.title('Image Plotter')
+
+        # Create a button to refresh the plot
+        self.refresh_button = tk.Button(self.root, text='Refresh', command=self.refresh_plot)
+        self.refresh_button.pack()
+
+        # Create a frame to hold the image widgets
+        self.image_frame = tk.Frame(self.root)
+        self.image_frame.pack()
+
+        # Set up the plot
+        self.setup_plot()
+
+    def setup_plot(self):
+        # Get subfolder names within the folder path
+        self.subfolders = [f.path for f in os.scandir(self.folder_path) if f.is_dir()]
+
+        # Create image widgets for each subfolder
+        for subfolder in self.subfolders:
+            # Get list of image paths within the subfolder
+            self.image_paths.append([os.path.join(subfolder, f) for f in os.listdir(subfolder) if f.endswith('.jpg')])
+
+            # Create a frame to hold the image and label widgets
+            frame = tk.Frame(self.image_frame)
+            frame.pack(side=tk.LEFT)
+
+            # Create an image widget for a random image from the subfolder
+            image_path = random.choice(self.image_paths[-1])
+            img = Image.open(image_path)
+            img = img.resize((600, 600))
+            img_tk = ImageTk.PhotoImage(img)
+            self.image_widgets.append(tk.Label(frame, image=img_tk))
+            self.image_widgets[-1].image = img_tk
+            self.image_widgets[-1].pack()
+
+            # Create an image widget for the subfolder name
+            label = tk.Label(frame, text=os.path.basename(subfolder))
+            label.pack(side=tk.BOTTOM)
+
+    def refresh_plot(self):
+        # Remove old image widgets
+        for widget in self.image_widgets:
+            widget.pack_forget()
+
+        # Create new image widgets for each subfolder
+        for i, subfolder in enumerate(self.subfolders):
+            # Select a random image from the subfolder
+            image_path = random.choice(self.image_paths[i])
+
+            # Update the image widget with the new image
+            img = Image.open(image_path)
+            img = img.resize((600, 600))
+            img_tk = ImageTk.PhotoImage(img)
+            self.image_widgets[i].configure(image=img_tk)
+            self.image_widgets[i].image = img_tk
+            self.image_widgets[i].pack(side=tk.LEFT)
+
+    def run(self):
+        self.root.mainloop()
+
+
+# Example usage
+plotter = IMO_dataset_plotter(r"C:\Users\siebe\OneDrive\Documenten\AAIndustrieel ingenieur\Masterjaar\Sem2\Masterproef\IMO_dataset\werktfunctie")
+plotter.run()
